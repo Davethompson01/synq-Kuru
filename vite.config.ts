@@ -25,4 +25,7 @@ export default defineConfig(({ mode }) => ({
       target: 'es2022',
     },
   },
+  define: {
+    'process.env': {},
+  },
 }));
