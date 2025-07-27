@@ -21,8 +21,14 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       external: [],
     },
+    commonjsOptions: {
+      include: [],
+    },
   },
   optimizeDeps: {
     exclude: ["@rollup/rollup-linux-x64-gnu"],
+  },
+  define: {
+    global: 'globalThis',
   },
 }));
