@@ -24,11 +24,15 @@ export default defineConfig(({ mode }) => ({
     commonjsOptions: {
       include: [],
     },
+    minify: 'esbuild',
   },
   optimizeDeps: {
     exclude: ["@rollup/rollup-linux-x64-gnu"],
   },
   define: {
     global: 'globalThis',
+  },
+  esbuild: {
+    target: 'es2015',
   },
 }));
