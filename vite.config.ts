@@ -17,9 +17,12 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    target: "es2022",
+    target: "es2020",
   },
   optimizeDeps: {
     include: ['@base-org/account'],
+    esbuildOptions: {
+      target: 'es2022',
+    },
   },
 }));
