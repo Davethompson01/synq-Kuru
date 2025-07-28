@@ -5,11 +5,16 @@ import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: "localhost",
     port: 8080,
+    hmr: {
+      port: 8080,
+    },
   },
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic',
+    }),
   ],
   resolve: {
     alias: {
@@ -17,13 +22,10 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    target: "es2020",
+    target: "es2022",
   },
   optimizeDeps: {
-    include: ['@base-org/account'],
-    esbuildOptions: {
-      target: 'es2022',
-    },
+    exclude: ['@base-org/account'],
   },
   define: {
     'process.env': {},

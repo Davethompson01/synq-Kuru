@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { CheckCircle, AlertCircle, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface RainbowWalletConnectionProps {
   onWalletConnected: (address: string) => void;
@@ -11,12 +11,21 @@ interface RainbowWalletConnectionProps {
 
 export const RainbowWalletConnection = ({ onWalletConnected }: RainbowWalletConnectionProps) => {
   const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
 
   React.useEffect(() => {
     if (isConnected && address) {
       onWalletConnected(address);
     }
   }, [isConnected, address, onWalletConnected]);
+
+  const handleConnect = () => {
+    const connector = connectors[0]; // Use the first available connector (usually MetaMask)
+    if (connector.ready) {
+      connect({ connector });
+    }
+  };
 
   if (isConnected && address) {
     return (
@@ -31,6 +40,14 @@ export const RainbowWalletConnection = ({ onWalletConnected }: RainbowWalletConn
               </p>
             </div>
           </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => disconnect()}
+            className="text-green-600 border-green-300 hover:bg-green-100"
+          >
+            Disconnect
+          </Button>
         </CardContent>
       </Card>
     );
@@ -49,7 +66,13 @@ export const RainbowWalletConnection = ({ onWalletConnected }: RainbowWalletConn
               </p>
             </div>
           </div>
-          <ConnectButton />
+          <Button 
+            onClick={handleConnect}
+            className="bg-orange-600 hover:bg-orange-700 text-white"
+          >
+            <Wallet className="w-4 h-4 mr-2" />
+            Connect Wallet
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -100,6 +100,12 @@ export const SynchronizedVoteSection = ({ onVote, token }: SynchronizedVoteSecti
               setUserVote(vote);
             }
           });
+        } else {
+          // Round ended, reset user vote
+          setUserVote(null);
+          if (votesChannel) {
+            votesChannel.unsubscribe();
+          }
         }
       }
     });
@@ -119,12 +125,36 @@ export const SynchronizedVoteSection = ({ onVote, token }: SynchronizedVoteSecti
       return;
     }
 
-    const timer = setInterval(() => {
+    const timer = setInterval(async () => {
       const endTime = new Date(currentRound.end_time).getTime();
       const now = Date.now();
       const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
       
       setTimeLeft(remaining);
+      
+      // Auto-create new round when current round ends
+      if (remaining === 0) {
+        try {
+          // End the current round
+          await supabaseService.endRound(currentRound.id);
+          
+          // Create a new round automatically
+          const newRound = await supabaseService.createRound(token.symbol, 300);
+          if (newRound) {
+            setCurrentRound(newRound);
+            await updateVoteStats(newRound.id);
+            
+            if (address) {
+              const vote = await supabaseService.getUserVote(newRound.id, address);
+              setUserVote(vote);
+            } else {
+              setUserVote(null);
+            }
+          }
+        } catch (error) {
+          console.error('Error auto-creating new round:', error);
+        }
+      }
     }, 1000);
 
     const endTime = new Date(currentRound.end_time).getTime();
@@ -133,7 +163,7 @@ export const SynchronizedVoteSection = ({ onVote, token }: SynchronizedVoteSecti
     setTimeLeft(remaining);
 
     return () => clearInterval(timer);
-  }, [currentRound]);
+  }, [currentRound, token.symbol, address]);
 
   const updateVoteStats = async (roundId: string) => {
     try {

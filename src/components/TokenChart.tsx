@@ -26,15 +26,15 @@ interface ChartDataPoint {
 
 export const TokenChart = ({ token }: TokenChartProps) => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [timeframe, setTimeframe] = useState('1H');
   const [isLoading, setIsLoading] = useState(true);
+  const [timeframe, setTimeframe] = useState('1H');
+  const [hasError, setHasError] = useState(false);
 
-  // Fetch real cryptocurrency data
   useEffect(() => {
     const fetchRealData = async () => {
       setIsLoading(true);
+      setHasError(false);
       try {
-        // Map symbols 
         const symbolMap: { [key: string]: string } = {
           'BTC': 'bitcoin',
           'ETH': 'ethereum',
@@ -46,13 +46,13 @@ export const TokenChart = ({ token }: TokenChartProps) => {
         
         const coinId = symbolMap[token.symbol] || 'bitcoin';
         
-        // Fetch historical data from CoinGecko
+        // Use a more reliable CoinGecko endpoint for free API
         const response = await fetch(
-          `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1&interval=hourly`
+          `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`
         );
         
         if (!response.ok) {
-          throw new Error('Failed to fetch data');
+          throw new Error(`API request failed with status ${response.status}`);
         }
         
         const data = await response.json();
@@ -75,40 +75,17 @@ export const TokenChart = ({ token }: TokenChartProps) => {
           });
           
           setChartData(formattedData);
+        } else {
+          throw new Error('Invalid data format from API');
         }
       } catch (error) {
-        console.error('Failed to fetch real crypto data, using mock data:', error);
-        
-      
-        // generateMockData();
+        console.error('Failed to fetch real crypto data:', error);
+        // Don't use mock data - just show error state
+        setChartData([]);
+        setHasError(true);
       } finally {
         setIsLoading(false);
       }
-    };
-
-    const generateMockData = () => {
-      const data: ChartDataPoint[] = [];
-      let price = token.price * (0.95 + Math.random() * 0.1);
-      
-      for (let i = 0; i < 24; i++) {
-        const volatility = token.price > 1000 ? 0.02 : token.price > 100 ? 0.03 : 0.05;
-        const change = (Math.random() - 0.5) * volatility;
-        price = Math.max(0.0001, price * (1 + change));
-        
-        const time = new Date(Date.now() - (23 - i) * 60 * 60 * 1000);
-        data.push({
-          time: time.toLocaleTimeString('en-US', { 
-            hour12: false, 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          }),
-          price: Number(price.toFixed(token.price > 1 ? 2 : 6)),
-          volume: Math.floor(Math.random() * 50000) + 10000
-        });
-      }
-      
-      data[data.length - 1].price = token.price;
-      setChartData(data);
     };
 
     if (token.price > 0) {
@@ -158,9 +135,12 @@ export const TokenChart = ({ token }: TokenChartProps) => {
               return [...newData.slice(1), newDataPoint];
             });
           }
+        } else {
+          console.warn(`Price update failed with status ${response.status}`);
         }
       } catch (error) {
         console.error('Failed to update price:', error);
+        // Continue with existing data if API fails
       }
     }, 30000);
 
@@ -201,6 +181,25 @@ export const TokenChart = ({ token }: TokenChartProps) => {
           <div className="text-center text-muted-foreground">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
             <p>Loading real market data...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="text-base sm:text-lg">
+            {token.symbol} Price Chart
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="h-48 sm:h-64 lg:h-80 flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+            <p className="text-red-500 font-medium">Failed to load market data</p>
+            <p className="text-sm text-muted-foreground mt-1">API temporarily unavailable</p>
           </div>
         </CardContent>
       </Card>
