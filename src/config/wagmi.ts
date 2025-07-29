@@ -1,15 +1,10 @@
 
-import { createConfig } from 'wagmi';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { mainnet } from 'wagmi/chains';
-import { injected } from 'wagmi/connectors';
-import { http } from 'viem';
 
-export const config = createConfig({
+export const config = getDefaultConfig({
+  appName: 'hahawallet',
+  projectId: '3b3369c5678f62c92ed5e4e23ad464f5', 
   chains: [mainnet],
-  connectors: [
-    injected(),
-  ],
-  transports: {
-    [mainnet.id]: http(),
-  },
+  ssr: true,
 });
