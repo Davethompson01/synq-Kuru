@@ -92,7 +92,7 @@ const Index = () => {
 
   const handleBuyToken = async (amount: number) => {
     console.log(`Buying ${amount} ${currentToken.symbol} tokens`);
-    // You can add activity tracking here if needed
+    
   };
 
   if (isLoading) {
